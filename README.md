@@ -1,6 +1,8 @@
 # Messenger Bot
 
-To test out the bot while in development you need to be an admin or tester for the bot page on fb.
+[Messenger Platform Docs](https://developers.facebook.com/docs/messenger-platform/complete-guide)
+
+To test out the bot while in development you need to be an admin or tester for the bot page on fb. Once you are, you can interact with it on fb desktop or messenger by searching for Bottestpage in chat.
 FB Page: [Bottestpage](https://www.facebook.com/Bottestpage-336372346703232/)
 Bot name: Bottestpage
 
