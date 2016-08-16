@@ -1,0 +1,40 @@
+{
+  "GET_STARTED_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Hi there!, Is there a police interaction you would like to report today?",
+      "buttons":[{
+        "type": "postback",
+        "title": "Yes",
+        "payload": "START_REPORT_PAYLOAD"
+      }]
+    }
+  },
+  "CONFIRM_LOCATION_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Is this the location? Check the map and reply Yes/No.",
+      "buttons":[{
+        "type": "web_url",
+        "url": "https://www.google.com/maps/place/San+Francisco,+CA/",
+        "title": "Show Map"
+      }]
+    }
+  },
+  "NEXT_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Where did this happen?",
+      "buttons":[{
+        "type": "postback",
+        "title": "Current location",
+        "payload": "NEXT_PAYLOAD"
+      },
+      {
+        "type": "postback",
+        "title": "Input Address",
+        "payload": "NEXT_PAYLOAD"
+      }]
+    }
+  }
+}
