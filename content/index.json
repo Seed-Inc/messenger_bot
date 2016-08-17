@@ -1,24 +1,48 @@
 {
-  "GET_STARTED_PAYLOAD" : {
+  "STEP:1_GET_STARTED_PAYLOAD" : {
     "payload": {
       "template_type": "button",
       "text": "Hi there!, Is there a police interaction you would like to report today?",
       "buttons":[{
         "type": "postback",
         "title": "Yes",
-        "payload": "START_REPORT_PAYLOAD"
+        "payload": "STEP:2_START_REPORT_PAYLOAD"
       }]
     }
   },
-  "CONFIRM_LOCATION_PAYLOAD" : {
-    "payload": {
-      "template_type": "button",
-      "text": "Is this the location? Check the map and reply Yes/No.",
-      "buttons":[{
-        "type": "web_url",
-        "url": "https://www.google.com/maps/place/San+Francisco,+CA/",
-        "title": "Show Map"
-      }]
+  "STEP:2_START_REPORT_PAYLOAD" : {
+      "message":{
+        "text":"OK, great! I'll be asking you a couple questions. You can restart at anypoint from the menu below"
+      }
+  },
+  "STEP:3_ASK_LOCATION_PAYLOAD" : {
+      "message": {
+        "text":"Let's start with the City where this incident happened? (ex: San Francisco)"
+      }
+  },
+  "STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD" : {
+      "message": {
+        "text":"Ok let's try again. Try and be more precise? (ex: San Francisco California)"
+      }
+  },
+  "STEP:4_LOCATION_CONFIRMED_PAYLOAD" : {
+    "message": {
+      "text":"Thanks, got it."
+    }
+  },
+  "QUICK_REPLIES_PAYLOAD" : {
+    "message":{
+      "text":"Is that the city?:",
+      "quick_replies":[{
+         "content_type":"text",
+         "title":"Yes",
+         "payload":"NEXT_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"No",
+         "payload":"NEXT_PAYLOAD"
+        }]
     }
   },
   "NEXT_PAYLOAD" : {
