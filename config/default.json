@@ -3,5 +3,6 @@
     "appSecret": "f23178e5e1818c16f52a3db53a6d992b",
     "pageAccessToken": "EAAZAMo5KWXZCoBALneZAinWE2VG4HfqMYTgjjP2Buquc8vYXjpcj8rZByhCsZCmf3DrVuzwJq94e183PVgSeaCCzZBHXJMFwtibaTQRtb2MoPvY7TzS5iRdeNwZCNUrP2wcdwQWhQY65qRaX0qouu9gRFFDMVmQKZBSfriTEKmWDWgFIWVGlDJxe",
     "validationToken": "my_voice_is_my_password_verify_me",
-    "serverURL": ""
+    "serverURL": "",
+    "googlePlacesApiKey": "AIzaSyBbixdJQVlTOQ4rHBifvQTOBw5FfJ_Tkhs"
 }
