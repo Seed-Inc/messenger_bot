@@ -9,6 +9,9 @@ const app = express()
 
 const content = require('./content')
 
+const locationUtil = require('./utils/location');
+const fb = require('./utils/services/fbMessengerSendApi')
+
 app.set('port', (process.env.PORT || 5000))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json({ verify: verifyRequestSignature }))
@@ -115,36 +118,6 @@ app.post('/webhook', function (req, res) {
 
 
 /*
- * Authorization Event
- *
- * The value for 'optin.ref' is defined in the entry point. For the "Send to
- * Messenger" plugin, it is the 'data-ref' field. Read more at
- * https://developers.facebook.com/docs/messenger-platform/webhook-reference/authentication
- *
- */
-function receivedAuthentication(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-  var timeOfAuth = event.timestamp;
-
-  // The 'ref' field is set in the 'Send to Messenger' plugin, in the 'data-ref'
-  // The developer can set this to an arbitrary value to associate the
-  // authentication callback with the 'Send to Messenger' click event. This is
-  // a way to do account linking when the user clicks the 'Send to Messenger'
-  // plugin.
-  var passThroughParam = event.optin.ref;
-
-  console.log("Received authentication for user %d and page %d with pass " +
-    "through param '%s' at %d", senderID, recipientID, passThroughParam,
-    timeOfAuth);
-
-  // When an authentication is received, we'll send a message back to the sender
-  // to let them know it was successful.
-  sendTextMessage(senderID, "Authentication successful");
-}
-
-
-/*
  * Message Event
  *
  * This event is called when a message is sent to your page. The 'message'
@@ -198,12 +171,37 @@ function receivedMessage(event) {
     // keywords and send back the corresponding example. Otherwise, just echo
     // the text we received.
     switch (messageText) {
+			// user inputs a location
+			// static location for now
       case 'San Francisco':
-        sendButtonMessage(senderID, 'CONFIRM_LOCATION_PAYLOAD');
-        break;
+			default:
+				// bot receives user input and checks for possible locations
+				locationUtil.getPredictions(messageText).then(function(predictions) {
 
-      default:
-        sendTextMessage(senderID, messageText);
+					if (predictions.length != 0) {
+
+						// get generic template payload with location predictions to confirm the city
+						locationUtil.createLocationPredictionsPayload(predictions).then(function(payload) {
+							// send user a generic template with locations predictions
+							sendGenericMessage(senderID, payload)
+						})
+						.catch(function(err) {
+							console.error(err.message);
+						});
+
+					} else {
+						sendRedundancyMessage(senderID, messageText);
+					}
+
+				})
+				.catch(function(err) {
+					console.error(err.message);
+				});
+
+			// 	break;
+			//
+      // default:
+      //   sendRedundancyMessage(senderID, messageText);
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
@@ -263,24 +261,28 @@ function receivedPostback(event) {
 	    // the text we received.
 			// Check content/index.js for button payloads
 	    switch (payload) {
-	      case 'GET_STARTED_PAYLOAD':
+	      case 'STEP:1_GET_STARTED_PAYLOAD':
 					// confirm starting new report
-	        sendButtonMessage(senderID, 'GET_STARTED_PAYLOAD');
+	        sendButtonMessage(senderID, payload);
 	        break;
 
-				case 'START_REPORT_PAYLOAD':
+				case 'STEP:2_START_REPORT_PAYLOAD':
 					// intro
-	        sendTextMessage(senderID, "OK, great! I'll be asking you a couple questions. You can restart at anypoint from the menu below");
+	        sendTextMessage(senderID, payload);
 
 					// start by getting the user's location
 					setTimeout(function() {
-						sendTextMessage(senderID, "Let's start with the City where this incident happened? (ex: San Francisco)");
+						sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
 					}, 1000)
+	        break;
 
+				case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
+					// ask for location again
+					sendTextMessage(senderID, payload);
 	        break;
 
 	      default:
-	        sendTextMessage(senderID, "Postback called");
+	        sendTextMessage(senderID, "Postback called, but not understood");
 	    }
 	  }
 
@@ -306,108 +308,93 @@ function receivedMessageRead(event) {
 }
 
 /*
- * Send messages to user functions usinf the Send Api
- *
- */
+* Send messages to user functions usinf the Send Api
+*
+*/
+function sendRedundancyMessage(recipientId, messageText) {
+ var messageData = {
+   recipient: {
+     id: recipientId
+   },
+   message: {
+     text: "Sorry, I did not understand: " + messageText,
+     metadata: "DEVELOPER_DEFINED_METADATA"
+   }
+ };
 
- function sendTextMessage(recipientId, messageText) {
-   var messageData = {
-     recipient: {
-       id: recipientId
-     },
-     message: {
-       text: messageText,
-       metadata: "DEVELOPER_DEFINED_METADATA"
-     }
-   };
-
-   callSendAPI(messageData);
- }
-
- /*
-  * Send a button message using the Send API.
-  *
-  */
- function sendButtonMessage(recipientId, payload) {
-   var messageData = {
-     recipient: {
-       id: recipientId
-     },
-     message: {
-       attachment: Object.assign({
-         type: "template"
-       }, content[payload])
-     }
-   };
-
-   callSendAPI(messageData);
- }
-
- /*
-  * Send a message with Quick Reply buttons.
-  *
-  */
- function sendQuickReply(recipientId) {
-   var messageData = {
-     recipient: {
-       id: recipientId
-     },
-     message: {
-       text: "What's your favorite movie genre?",
-       metadata: "DEVELOPER_DEFINED_METADATA",
-       quick_replies: [
-         {
-           "content_type":"text",
-           "title":"Action",
-           "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_ACTION"
-         },
-         {
-           "content_type":"text",
-           "title":"Comedy",
-           "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_COMEDY"
-         },
-         {
-           "content_type":"text",
-           "title":"Drama",
-           "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_DRAMA"
-         }
-       ]
-     }
-   };
-
-   callSendAPI(messageData);
- }
-
- /*
- * Call the Send API. The message data goes in the body. If successful, we'll
- * get the message id in a response
- *
- */
-function callSendAPI(messageData) {
-  request({
-    uri: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: PAGE_ACCESS_TOKEN },
-    method: 'POST',
-    json: messageData
-
-  }, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var recipientId = body.recipient_id;
-      var messageId = body.message_id;
-
-      if (messageId) {
-        console.log("Successfully sent message with id %s to recipient %s",
-          messageId, recipientId);
-      } else {
-      console.log("Successfully called Send API for recipient %s",
-        recipientId);
-      }
-    } else {
-      console.error(response.error);
-    }
-  });
+ fb.callSendAPI(messageData);
 }
 
+/*
+* Send messages to user functions usinf the Send Api
+*
+*/
+function sendTextMessage(recipientId, payload) {
+ var messageData = {
+   recipient: {
+     id: recipientId
+   },
+   message: {
+     text: content[payload].message.text,
+     metadata: "DEVELOPER_DEFINED_METADATA"
+   }
+ };
+
+ fb.callSendAPI(messageData);
+}
+
+/*
+* Send a button message using the Send API.
+*
+*/
+function sendButtonMessage(recipientId, payload) {
+ var messageData = {
+   recipient: {
+     id: recipientId
+   },
+   message: {
+     attachment: Object.assign({
+       type: "template"
+     }, content[payload])
+   }
+ };
+
+ fb.callSendAPI(messageData);
+}
+
+/*
+ * Send a Structured Message (Generic Message type) using the Send API.
+ *
+ */
+function sendGenericMessage(recipientId, payload) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+		message: {
+      attachment: Object.assign({
+        type: "template"
+      }, payload)
+    }
+  };
+
+  fb.callSendAPI(messageData);
+}
+
+
+
+/*
+* Send a message with Quick Reply buttons.
+*
+*/
+function sendQuickReply(recipientId, payload) {
+ var messageData = Object.assign({
+		 recipient: {
+			 id: recipientId
+		 }}, content[payload])
+
+ fb.callSendAPI(messageData);
+}
 
 
 /*
