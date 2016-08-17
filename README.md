@@ -11,6 +11,11 @@ Remote Webhook
 https://seed-messenger-bot.herokuapp.com/webhook/
 ```
 
+Verify Token
+```
+my_voice_is_my_password_verify_me
+```
+
 Heroku Remote
 ```
 https://git.heroku.com/seed-messenger-bot.git
