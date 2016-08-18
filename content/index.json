@@ -1,4 +1,27 @@
 {
+  "CONVERSATION_TURNS_LIST": [{
+    "id":"0",
+    "name":"STEP:1_GET_STARTED_PAYLOAD"
+  },
+  {
+    "id":"1",
+    "name":"STEP:2_START_REPORT_PAYLOAD"
+  },
+  {
+    "id":"2",
+    "name":"STEP:3_ASK_LOCATION_PAYLOAD"
+  },
+  {
+    "id":"3",
+    "name":"STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD"
+  },
+  {
+    "id":"4",
+    "name":"STEP:4_LOCATION_CONFIRMED_PAYLOAD"
+  }],
+
+
+
   "STEP:1_GET_STARTED_PAYLOAD" : {
     "payload": {
       "template_type": "button",
@@ -30,6 +53,49 @@
       "text":"Thanks, got it."
     }
   },
+  "STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Can you tell me about the identity of the police officer?",
+      "buttons":[{
+        "type": "postback",
+        "title": "Enter Police Badge #",
+        "payload": "STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD"
+      },
+      {
+        "type": "postback",
+        "title": "Enter Description",
+        "payload": "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD"
+      }]
+    }
+  },
+  "STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD" : {
+      "message": {
+        "text":"What's the badge number?"
+      }
+  },
+  "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD" : {
+    "message":{
+      "text":"What was the officer's ethnicity?",
+      "quick_replies":[
+        {
+         "content_type":"text",
+         "title":"White",
+         "payload":"LAST_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"Black",
+         "payload":"LAST_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"Latino",
+         "payload":"LAST_PAYLOAD"
+        }
+      ]
+    }
+  },
   "QUICK_REPLIES_PAYLOAD" : {
     "message":{
       "text":"Is that the city?:",
@@ -45,7 +111,7 @@
         }]
     }
   },
-  "NEXT_PAYLOAD" : {
+  "BUTTON_PAYLOAD" : {
     "payload": {
       "template_type": "button",
       "text": "Where did this happen?",
@@ -60,5 +126,11 @@
         "payload": "NEXT_PAYLOAD"
       }]
     }
+  },
+  "LAST_PAYLOAD" : {
+      "message": {
+        "text":"That's all for now :("
+      }
   }
+
 }

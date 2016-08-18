@@ -9,8 +9,9 @@ const app = express()
 
 const content = require('./content')
 
+const fb = require('./utils/services/fbMessengerSendApi');
 const locationUtil = require('./utils/location');
-const fb = require('./utils/services/fbMessengerSendApi')
+const turnUtil = require('./utils/turn');
 
 app.set('port', (process.env.PORT || 5000))
 app.use(bodyParser.urlencoded({extended: false}))
@@ -167,14 +168,15 @@ function receivedMessage(event) {
 
   if (messageText) {
 
-    // If we receive a text message, check to see if it matches any special
-    // keywords and send back the corresponding example. Otherwise, just echo
-    // the text we received.
-    switch (messageText) {
+    // If we receive a text message, check what turn we are on to make sure
+		// we give the appropriate response
+		var turn = turnUtil.get()
+
+    switch (turn) {
 			// user inputs a location
-			// static location for now
-      case 'San Francisco':
-			default:
+      case 'STEP:3_ASK_LOCATION_PAYLOAD':
+			case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
+
 				// bot receives user input and checks for possible locations
 				locationUtil.getPredictions(messageText).then(function(predictions) {
 
@@ -198,10 +200,10 @@ function receivedMessage(event) {
 					console.error(err.message);
 				});
 
-			// 	break;
-			//
-      // default:
-      //   sendRedundancyMessage(senderID, messageText);
+				break;
+
+      default:
+        sendRedundancyMessage(senderID, messageText);
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
@@ -263,6 +265,7 @@ function receivedPostback(event) {
 	    switch (payload) {
 	      case 'STEP:1_GET_STARTED_PAYLOAD':
 					// confirm starting new report
+					turnUtil.set('STEP:1_GET_STARTED_PAYLOAD');
 	        sendButtonMessage(senderID, payload);
 	        break;
 
@@ -272,14 +275,43 @@ function receivedPostback(event) {
 
 					// start by getting the user's location
 					setTimeout(function() {
+						turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
 						sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
 					}, 1000)
 	        break;
 
 				case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
 					// ask for location again
+					turnUtil.set('STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD');
 					sendTextMessage(senderID, payload);
 	        break;
+
+				case 'STEP:4_LOCATION_CONFIRMED_PAYLOAD':
+					sendTextMessage(senderID, payload);
+
+					// get information about the officer
+					setTimeout(function() {
+						turnUtil.set('STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+					}, 1000)
+					break;
+
+				case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
+					// ask for badge number
+					turnUtil.set('STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD');
+					sendTextMessage(senderID, payload);
+
+					break;
+
+				case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD':
+					// ask for badge number
+					turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD');
+					sendQuickReply(senderID, payload);
+
+					break;
+
+				case 'LAST_PAYLOAD':
+					sendTextMessage(senderID, payload);
 
 	      default:
 	        sendTextMessage(senderID, "Postback called, but not understood");
