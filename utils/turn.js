@@ -12,6 +12,7 @@ module.exports = {
 
   set(turn) {
     currentTurn = turn;
+    console.log("THE CURRENT TURN IS: " + currentTurn)
   },
 
   get() {
