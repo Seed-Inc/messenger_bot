@@ -40,18 +40,13 @@
   },
   "STEP:3_ASK_LOCATION_PAYLOAD" : {
       "message": {
-        "text":"Let's start with the City where this incident happened? (ex: San Francisco)"
+        "text":"Let's start with the city where this incident happened? (ex: San Francisco)"
       }
   },
   "STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD" : {
       "message": {
         "text":"Ok let's try again. Try and be more precise? (ex: San Francisco California)"
       }
-  },
-  "STEP:4_LOCATION_CONFIRMED_PAYLOAD" : {
-    "message": {
-      "text":"Thanks, got it."
-    }
   },
   "STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD" : {
     "payload": {
@@ -98,7 +93,7 @@
   },
   "LAST_PAYLOAD" : {
       "message": {
-        "text":"That's all for now :("
+        "text":"I'm still working on myself. That's all for now :(. If you want to start over, you can from the menu below.:)"
       }
   }
 
