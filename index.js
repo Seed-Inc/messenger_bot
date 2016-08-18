@@ -158,11 +158,18 @@ function receivedMessage(event) {
       messageId, appId, metadata);
     return;
   } else if (quickReply) {
-    var quickReplyPayload = quickReply.payload;
-    console.log("Quick reply for message %s with payload %s",
-      messageId, quickReplyPayload);
 
-    sendTextMessage(senderID, "Quick reply tapped");
+    var quickReplyPayload = quickReply.payload;
+
+		if(quickReplyPayload) {
+
+			console.log("Quick reply for message %s with payload %s",
+			messageId, quickReplyPayload);
+
+			sendTextMessage(senderID, quickReplyPayload);
+
+		}
+
     return;
   }
 
@@ -202,8 +209,15 @@ function receivedMessage(event) {
 
 				break;
 
+			case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
+
+				sendTextMessageWithUserInput(senderID, "Thanks, I noted down the badge number: " + messageText);
+
+			break;
+
       default:
         sendRedundancyMessage(senderID, messageText);
+
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
@@ -256,67 +270,81 @@ function receivedPostback(event) {
   console.log("Received postback for user %d and page %d with payload '%s' " +
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
+
 		if (payload) {
 
-	    // When a postback is called, if we receive a payload, check to see if it matches a predefined
-	    // payload and send back the corresponding response. Otherwise, just echo
-	    // the text we received.
-			// Check content/index.js for button payloads
-	    switch (payload) {
-	      case 'STEP:1_GET_STARTED_PAYLOAD':
-					// confirm starting new report
-					turnUtil.set('STEP:1_GET_STARTED_PAYLOAD');
-	        sendButtonMessage(senderID, payload);
-	        break;
+			// When a postback is called, if we receive a payload, check to see if it matches a predefined
+			// payload and send back the corresponding response. Otherwise, just echo
+			// the text we received.
 
-				case 'STEP:2_START_REPORT_PAYLOAD':
-					// intro
-	        sendTextMessage(senderID, payload);
+			// if the postback includes data the user has confirmed
+			// only being user for location now
+			if (payload.includes("details:", 0)) {
 
-					// start by getting the user's location
-					setTimeout(function() {
-						turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
-						sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
-					}, 1000)
-	        break;
+				var userConfirmedData = payload.substring(8);
 
-				case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
-					// ask for location again
-					turnUtil.set('STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD');
-					sendTextMessage(senderID, payload);
-	        break;
+				console.log(userConfirmedData);
 
-				case 'STEP:4_LOCATION_CONFIRMED_PAYLOAD':
-					sendTextMessage(senderID, payload);
+				// TODO: CHECK What turn we are on and then do it
+				// semd confirmation message with user's input
+				sendTextMessageWithUserInput(senderID, "Thanks, I've noted down that the location is: " + userConfirmedData);
 
-					// get information about the officer
-					setTimeout(function() {
-						turnUtil.set('STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
-						sendButtonMessage(senderID, 'STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
-					}, 1000)
-					break;
+				// move to next turn and get information about the officer
+				setTimeout(function() {
+					turnUtil.set('STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+					sendButtonMessage(senderID, 'STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+				}, 1000)
 
-				case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
-					// ask for badge number
-					turnUtil.set('STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD');
-					sendTextMessage(senderID, payload);
 
-					break;
+			} else {
 
-				case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD':
-					// ask for badge number
-					turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD');
-					sendQuickReply(senderID, payload);
+				// Check content/index.js for button payloads
+				switch (payload) {
+					case 'STEP:1_GET_STARTED_PAYLOAD':
+						// confirm starting new report
+						turnUtil.set('STEP:1_GET_STARTED_PAYLOAD');
+						sendButtonMessage(senderID, payload);
+						break;
 
-					break;
+					case 'STEP:2_START_REPORT_PAYLOAD':
+						// intro
+						sendTextMessage(senderID, payload);
 
-				case 'LAST_PAYLOAD':
-					sendTextMessage(senderID, payload);
+						// start by asking the user's location
+						setTimeout(function() {
+							turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
+							sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
+						}, 1000)
+						break;
 
-	      default:
-	        sendTextMessage(senderID, "Postback called, but not understood");
-	    }
-	  }
+					case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
+						// ask for location again
+						turnUtil.set('STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD');
+						sendTextMessage(senderID, payload);
+						break;
+
+					case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
+						// ask for badge number
+						turnUtil.set('STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD');
+						sendTextMessage(senderID, payload);
+						break;
+
+					case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD':
+						// ask for badge number
+						turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD');
+						sendQuickReply(senderID, payload);
+						break;
+
+						case 'LAST_PAYLOAD':
+						sendTextMessage(senderID, payload);
+						break;
+
+					default:
+						sendTextMessage(senderID, "Postback called, but not understood");
+				}
+			}
+
+		}
 
 }
 
@@ -358,8 +386,8 @@ function sendRedundancyMessage(recipientId, messageText) {
 }
 
 /*
-* Send messages to user functions usinf the Send Api
-*
+* Send messages to user function using the Send Api
+* These messages are based on content solely on predifined content
 */
 function sendTextMessage(recipientId, payload) {
  var messageData = {
@@ -368,6 +396,24 @@ function sendTextMessage(recipientId, payload) {
    },
    message: {
      text: content[payload].message.text,
+     metadata: "DEVELOPER_DEFINED_METADATA"
+   }
+ };
+
+ fb.callSendAPI(messageData);
+}
+
+/*
+* Send messages to user function using the Send Api
+* These messages are based on content solely on predifined content
+*/
+function sendTextMessageWithUserInput(recipientId, payload) {
+ var messageData = {
+   recipient: {
+     id: recipientId
+   },
+   message: {
+     text: payload,
      metadata: "DEVELOPER_DEFINED_METADATA"
    }
  };
