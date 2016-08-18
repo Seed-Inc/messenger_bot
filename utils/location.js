@@ -45,7 +45,7 @@ module.exports = {
 					buttons: [{
 						type: "postback",
 						title: "Confirm",
-						payload: "STEP:4_LOCATION_CONFIRMED_PAYLOAD",
+						payload: "details:"+predictions[0].description,
 					},
 					{
 						type: "postback",
@@ -65,7 +65,7 @@ module.exports = {
 						buttons: [{
 							type: "postback",
 							title: "Confirm",
-							payload: "STEP:4_LOCATION_CONFIRMED_PAYLOAD",
+							payload: "details:"+predictions[i].description,
 						}]
 					}
 					elements.push(element)
