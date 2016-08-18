@@ -125,13 +125,13 @@ app.post('/webhook', function (req, res) {
  * object format can vary depending on the kind of message that was received.
  * Read more at https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-received
  *
- * For this example, we're going to echo any text that we get. If we get some
- * special keywords ('button', 'generic', 'receipt'), then we'll send back
- * examples of those bubbles to illustrate the special message bubbles we've
- * created. If we receive a message with an attachment (image, video, audio),
- * then we'll simply confirm that we've received the attachment.
- *
  */
+
+
+// Somtimes the user doesn't write all of the things in one message,
+// this is a hack to save multiple messages together
+var turnUserInputArray = []
+
 function receivedMessage(event) {
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
@@ -152,11 +152,18 @@ function receivedMessage(event) {
   var messageAttachments = message.attachments;
   var quickReply = message.quick_reply;
 
+	// If we receive a text message, check what turn we are on to make sure
+	// we give the appropriate response
+	var turn = turnUtil.get()
+
+	// this is where we start getting back from the fb api user messages
   if (isEcho) {
     // Just logging message echoes to console
     console.log("Received echo for message %s and app %d with metadata %s",
       messageId, appId, metadata);
     return;
+
+	// if the user sent back a quick reply
   } else if (quickReply) {
 
     var quickReplyPayload = quickReply.payload;
@@ -166,18 +173,36 @@ function receivedMessage(event) {
 			console.log("Quick reply for message %s with payload %s",
 			messageId, quickReplyPayload);
 
-			sendTextMessage(senderID, quickReplyPayload);
+			switch(turn) {
+
+				// Indentifying Officer Turns
+				case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
+					turnUtil.set('STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
+					sendQuickReply(senderID, 'STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
+					break;
+
+				case 'STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD':
+					turnUtil.set('STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
+					sendQuickReply(senderID, 'STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
+					break;
+
+				case 'STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD':
+					turnUtil.set('STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
+					sendTextMessage(senderID, "STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD");
+					break;
+
+				default:
+					sendRedundancyMessage(senderID, messageText);
+
+			}
 
 		}
 
     return;
   }
 
+	// if the user wrote a message
   if (messageText) {
-
-    // If we receive a text message, check what turn we are on to make sure
-		// we give the appropriate response
-		var turn = turnUtil.get()
 
     switch (turn) {
 			// user inputs a location
@@ -210,10 +235,73 @@ function receivedMessage(event) {
 				break;
 
 			case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
-
 				sendTextMessageWithUserInput(senderID, "Thanks, I noted down the badge number: " + messageText);
+				break;
 
-			break;
+			case 'STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD':
+				if (messageText == "no") {
+					sendTextMessageWithUserInput(senderID, "Thanks, I've noted all that down about the officer.");
+
+					setTimeout(function() {
+						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
+					}, 1000)
+
+				} else {
+					// add this message to an array in case the user wnats to add more
+					turnUserInputArray.push(messageText);
+
+					turnUtil.set('STEP:5b5_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_CONFIRMATION_PAYLOAD');
+					sendTextMessageWithUserInput(senderID, 'Is that all: "' + messageText + '" You can write yes or just continue telling me.');
+				}
+
+				break;
+
+			case 'STEP:5b5_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_CONFIRMATION_PAYLOAD':
+
+				if (messageText == "yes") {
+
+					sendTextMessage(senderID, "STEP:5X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD");
+
+					setTimeout(function() {
+						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
+					}, 1000)
+
+				} else {
+
+					turnUserInputArray.push(messageText);
+					console.log(turnUserInputArray);
+					if (turnUserInputArray.length > 1) {
+
+						var allMessagesText = turnUserInputArray.join(" ");
+						sendTextMessageWithUserInput(senderID, 'Is that all? "' + allMessagesText + '"');
+
+					} else {
+						//start over
+						turnUtil.set('STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
+
+						console.error("something went wrong in merging: turnUserInputArray");
+						sendRedundancyMessage(senderID, "something went wrong, let's start this question over.");
+					}
+
+				}
+
+				break;
+
+			// Time and date of incident stuff
+			//
+			case 'STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
+				// ask for date in text date format
+				turnUtil.set('STEP:7_ASK_TIME_PAYLOAD');
+				sendTextMessage(senderID, 'STEP:7_ASK_TIME_PAYLOAD');
+				break;
+
+			case 'STEP:7_ASK_TIME_PAYLOAD':
+				// ask for date in text date format
+				turnUtil.set('LAST_PAYLOAD');
+				sendTextMessage(senderID, 'LAST_PAYLOAD');
+				break;
 
       default:
         sendRedundancyMessage(senderID, messageText);
@@ -277,13 +365,11 @@ function receivedPostback(event) {
 			// payload and send back the corresponding response. Otherwise, just echo
 			// the text we received.
 
-			// if the postback includes data the user has confirmed
+			// if the postback payload includes data the user has confirmed
 			// only being user for location now
 			if (payload.includes("details:", 0)) {
 
 				var userConfirmedData = payload.substring(8);
-
-				console.log(userConfirmedData);
 
 				// TODO: CHECK What turn we are on and then do it
 				// semd confirmation message with user's input
@@ -311,6 +397,7 @@ function receivedPostback(event) {
 						sendTextMessage(senderID, payload);
 
 						// start by asking the user's location
+						//
 						setTimeout(function() {
 							turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
 							sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
@@ -323,19 +410,35 @@ function receivedPostback(event) {
 						sendTextMessage(senderID, payload);
 						break;
 
+					// officer location stuff
+					//
 					case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
 						// ask for badge number
 						turnUtil.set('STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD');
 						sendTextMessage(senderID, payload);
 						break;
 
-					case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD':
-						// ask for badge number
-						turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD');
+					case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
+						// ask first officer description question
+						turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD');
 						sendQuickReply(senderID, payload);
 						break;
 
-						case 'LAST_PAYLOAD':
+					// Time and date of incident stuff
+					//
+					case 'STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
+						// ask for date in text date format
+						turnUtil.set('STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD');
+						sendTextMessage(senderID, payload);
+						break;
+
+					case 'STEP:7_ASK_TIME_PAYLOAD':
+						// ask for date in text date format
+						turnUtil.set('STEP:7_ASK_TIME_PAYLOAD');
+						sendTextMessage(senderID, payload);
+						break;
+
+					case 'LAST_PAYLOAD':
 						sendTextMessage(senderID, payload);
 						break;
 

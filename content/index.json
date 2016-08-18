@@ -60,7 +60,7 @@
       {
         "type": "postback",
         "title": "Enter Description",
-        "payload": "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD"
+        "payload": "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD"
       }]
     }
   },
@@ -69,26 +69,116 @@
         "text":"What's the badge number?"
       }
   },
-  "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PAYLOAD" : {
+  "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD" : {
     "message":{
       "text":"What was the officer's ethnicity?",
       "quick_replies":[
         {
          "content_type":"text",
          "title":"White",
-         "payload":"LAST_PAYLOAD"
+         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"Black",
-         "payload":"LAST_PAYLOAD"
+         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"Latino",
-         "payload":"LAST_PAYLOAD"
+         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
         }
       ]
+    }
+  },
+  "STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD" : {
+    "message":{
+      "text":"What was the officer's age?",
+      "quick_replies":[
+        {
+         "content_type":"text",
+         "title":"20-30",
+         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"30-40",
+         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"40-50",
+         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+       },
+       {
+        "content_type":"text",
+        "title":"50+",
+        "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+       }
+      ]
+    }
+  },
+  "STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD" : {
+    "message":{
+      "text":"What was the officer's sex?",
+      "quick_replies":[
+        {
+         "content_type":"text",
+         "title":"Male",
+         "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+        },
+        {
+         "content_type":"text",
+         "title":"Female",
+         "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+       },
+       {
+        "content_type":"text",
+        "title":"Not Sure",
+        "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+       }
+      ]
+    }
+  },
+  "STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD" : {
+    "message":{
+      "text":"Can you remember any other personal characteristics about the officer involved? You can just write free form, or say no."
+    }
+  },
+  "STEP:5X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD" : {
+    "message":{
+      "text":"Thanks, I've think I've got enough about the officer now. Let's move one."
+    }
+  },
+  "STEP:6_ASK_DATE_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Thanks for that. When did this incident occur?",
+      "buttons":[{
+        "type": "postback",
+        "title": "Today",
+        "payload": "STEP:7_ASK_TIME_PAYLOAD"
+      },
+      {
+        "type": "postback",
+        "title": "Yesterday",
+        "payload": "STEP:7_ASK_TIME_PAYLOAD"
+      },
+      {
+        "type": "postback",
+        "title": "Input Date",
+        "payload": "STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD"
+      }]
+    }
+  },
+  "STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD" : {
+    "message": {
+      "text":"You can input the date like this: mm/dd/yyyy. Thanks. (ex:08/19/2016)"
+    }
+  },
+  "STEP:7_ASK_TIME_PAYLOAD" : {
+    "message": {
+      "text":"Ok, thanks. Around what time did it happen? (ex: 12:15pm)"
     }
   },
   "LAST_PAYLOAD" : {
