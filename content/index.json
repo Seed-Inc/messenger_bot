@@ -96,37 +96,6 @@
       ]
     }
   },
-  "QUICK_REPLIES_PAYLOAD" : {
-    "message":{
-      "text":"Is that the city?:",
-      "quick_replies":[{
-         "content_type":"text",
-         "title":"Yes",
-         "payload":"NEXT_PAYLOAD"
-        },
-        {
-         "content_type":"text",
-         "title":"No",
-         "payload":"NEXT_PAYLOAD"
-        }]
-    }
-  },
-  "BUTTON_PAYLOAD" : {
-    "payload": {
-      "template_type": "button",
-      "text": "Where did this happen?",
-      "buttons":[{
-        "type": "postback",
-        "title": "Current location",
-        "payload": "NEXT_PAYLOAD"
-      },
-      {
-        "type": "postback",
-        "title": "Input Address",
-        "payload": "NEXT_PAYLOAD"
-      }]
-    }
-  },
   "LAST_PAYLOAD" : {
       "message": {
         "text":"That's all for now :("
