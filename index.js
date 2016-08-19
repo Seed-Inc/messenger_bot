@@ -239,7 +239,7 @@ function receivedMessage(event) {
 				break;
 
 			case 'STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD':
-				if (messageText == "no") {
+				if (messageText.toLowerCase() == "no") {
 					sendTextMessageWithUserInput(senderID, "Thanks, I've noted all that down about the officer.");
 
 					setTimeout(function() {
@@ -259,9 +259,17 @@ function receivedMessage(event) {
 
 			case 'STEP:5b5_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_CONFIRMATION_PAYLOAD':
 
-				if (messageText == "yes") {
+				if (messageText.toLowerCase() == "yes") {
 
 					sendTextMessage(senderID, "STEP:5X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD");
+
+					setTimeout(function() {
+						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
+					}, 1000)
+
+				} else if (messageText.toLowerCase() == "no") {
+					sendTextMessageWithUserInput(senderID, "Thanks, I've noted all that down about the officer.");
 
 					setTimeout(function() {
 						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
