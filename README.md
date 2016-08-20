@@ -35,7 +35,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"setting_type":"call_to_ac
 Persistent Menu
 
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"setting_type":"call_to_actions","thread_state":"existing_thread","call_to_actions":[{"type":"postback","title":"Start A New Report","payload":"STEP:2_START_REPORT_PAYLOAD"}]}' "https://graph.facebook.com/v2.6/me/thread_settings?access_token=PAGE_ACCESS_TOKEN"
+curl -X POST -H "Content-Type: application/json" -d '{"setting_type":"call_to_actions","thread_state":"existing_thread","call_to_actions":[{"type":"postback","title":"Start A New Report","payload":"STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD"},{"type":"postback","title":"Redo Question","payload":"UTILITIES:REDO_TURN_PAYLOAD"}]}' "https://graph.facebook.com/v2.6/me/thread_settings?access_token=PAGE_ACCESS_TOKEN"
 ```
 
 Currently using [ngrok](https://ngrok.com/) for local development & quick testing but it's means changing the webhook in the fb app back before pushing changes.
