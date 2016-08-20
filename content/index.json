@@ -5,7 +5,7 @@
   },
   {
     "id":"1",
-    "name":"STEP:2_START_REPORT_PAYLOAD"
+    "name":"STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD"
   },
   {
     "id":"2",
@@ -13,11 +13,15 @@
   },
   {
     "id":"3",
-    "name":"STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD"
+    "name":"STEP:4_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD"
   },
   {
     "id":"4",
-    "name":"STEP:4_LOCATION_CONFIRMED_PAYLOAD"
+    "name":"STEP:5_ASK_DATE_PAYLOAD"
+  },
+  {
+    "id":"5",
+    "name":"STEP:6_ASK_TIME_PAYLOAD"
   }],
 
 
@@ -25,166 +29,266 @@
   "STEP:1_GET_STARTED_PAYLOAD" : {
     "payload": {
       "template_type": "button",
-      "text": "Hi there!, Is there a police interaction you would like to report today?",
+      "text": "Hi there!, Is there a police interaction you would like to report?",
       "buttons":[{
         "type": "postback",
         "title": "Yes",
-        "payload": "STEP:2_START_REPORT_PAYLOAD"
+        "payload": "STEP:1a_START_REPORT_PAYLOAD"
       }]
     }
   },
-  "STEP:2_START_REPORT_PAYLOAD" : {
+  "STEP:1a_START_REPORT_PAYLOAD" : {
       "message":{
-        "text":"OK, great! I'll be asking you a couple questions. You can restart at anypoint from the menu below"
+        "text":"OK, great! I'll be asking you a couple questions. You can restart at anypoint from the menu below."
       }
+  },
+  "STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "Was the experience Positive or Negative?",
+      "buttons":[{
+        "type": "postback",
+        "title": "Positive",
+        "payload": "details:positive"
+      },
+      {
+        "type": "postback",
+        "title": "Negative",
+        "payload": "details:negative"
+      }]
+    }
+  },
+  "STEP:2a_POSITIVE_RESPONSE_PAYLOAD" : {
+    "message":{
+      "text":"That's good, let's get into some more detail."
+    }
+  },
+  "STEP:2b_NEGATIVE_RESPONSE_PAYLOAD" : {
+    "message":{
+      "text":"I'm sorry to here that, I hope you are ok. Let's get into some more detail."
+    }
   },
   "STEP:3_ASK_LOCATION_PAYLOAD" : {
       "message": {
-        "text":"Let's start with the city where this incident happened? (ex: San Francisco)"
+        "text":"Where did the incident occur? (ex: Oakland)"
       }
   },
   "STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD" : {
       "message": {
-        "text":"Ok let's try again. Try and be more precise? (ex: San Francisco California)"
+        "text":"Ok let's try again. Try and be more precise? (ex: Oakland California)"
       }
   },
-  "STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD" : {
+  "STEP:4_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD" : {
     "payload": {
       "template_type": "button",
       "text": "Can you tell me about the identity of the police officer?",
       "buttons":[{
         "type": "postback",
         "title": "Enter Police Badge #",
-        "payload": "STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD"
+        "payload": "STEP:4a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD"
       },
       {
         "type": "postback",
         "title": "Enter Description",
-        "payload": "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD"
+        "payload": "STEP:4b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD"
       }]
     }
   },
-  "STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD" : {
+  "STEP:4a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD" : {
       "message": {
         "text":"What's the badge number?"
       }
   },
-  "STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD" : {
+  "STEP:4b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD" : {
     "message":{
       "text":"What was the officer's ethnicity?",
       "quick_replies":[
         {
          "content_type":"text",
          "title":"White",
-         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
+         "payload":"STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"Black",
-         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
+         "payload":"STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"Latino",
-         "payload":"STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
-        }
+         "payload":"STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
+       },
+       {
+        "content_type":"text",
+        "title":"Asian",
+        "payload":"STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD"
+       }
       ]
     }
   },
-  "STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD" : {
+  "STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD" : {
     "message":{
       "text":"What was the officer's age?",
       "quick_replies":[
         {
          "content_type":"text",
          "title":"20-30",
-         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+         "payload":"STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"30-40",
-         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+         "payload":"STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"40-50",
-         "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+         "payload":"STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
        },
        {
         "content_type":"text",
         "title":"50+",
-        "payload":"STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
+        "payload":"STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD"
        }
       ]
     }
   },
-  "STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD" : {
+  "STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD" : {
     "message":{
       "text":"What was the officer's sex?",
       "quick_replies":[
         {
          "content_type":"text",
          "title":"Male",
-         "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+         "payload":"STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
         },
         {
          "content_type":"text",
          "title":"Female",
-         "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+         "payload":"STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
        },
        {
         "content_type":"text",
         "title":"Not Sure",
-        "payload":"STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
+        "payload":"STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD"
        }
       ]
     }
   },
-  "STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD" : {
+  "STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD" : {
     "message":{
       "text":"Can you remember any other personal characteristics about the officer involved? You can just write free form, or say no."
     }
   },
-  "STEP:5X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD" : {
+  "STEP:4X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD" : {
     "message":{
-      "text":"Thanks, I've think I've got enough about the officer now. Let's move one."
+      "text":"Thanks, I've think I've got enough about the officer now. Let's move on."
     }
   },
-  "STEP:6_ASK_DATE_PAYLOAD" : {
+  "STEP:5_ASK_DATE_PAYLOAD" : {
     "payload": {
       "template_type": "button",
-      "text": "Thanks for that. When did this incident occur?",
+      "text": "When did this incident occur?",
       "buttons":[{
         "type": "postback",
         "title": "Today",
-        "payload": "STEP:7_ASK_TIME_PAYLOAD"
+        "payload": "STEP:6_ASK_TIME_PAYLOAD"
       },
       {
         "type": "postback",
         "title": "Yesterday",
-        "payload": "STEP:7_ASK_TIME_PAYLOAD"
+        "payload": "STEP:6_ASK_TIME_PAYLOAD"
       },
       {
         "type": "postback",
         "title": "Input Date",
-        "payload": "STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD"
+        "payload": "STEP:5a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD"
       }]
     }
   },
-  "STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD" : {
+  "STEP:5a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD" : {
     "message": {
       "text":"You can input the date like this: mm/dd/yyyy. Thanks. (ex:08/19/2016)"
     }
   },
-  "STEP:7_ASK_TIME_PAYLOAD" : {
+  "STEP:6_ASK_TIME_PAYLOAD" : {
     "message": {
       "text":"Ok, thanks. Around what time did it happen? (ex: 12:15pm)"
+    }
+  },
+  "STEP:7a_ASK_ABOUT_POSITIVE_INCIDENT_PAYLOAD" : {
+    "message": {
+      "text":"Thanks. You said this was a positive experience with the police. Can you describe why? (e.g. the officer was professional, officer gave me a warning, etc)"
+    }
+  },
+  "STEP:7b_ASK_ABOUT_NEGATIVE_INCIDENT_PAYLOAD" : {
+    "message": {
+      "text":"Thanks. You said this was a negative experience with the police. Can you describe why? (e.g. discourtesy, discrimination, improper use of force, etc)"
+    }
+  },
+  "STEP:7X_CONFIRM_INCIDENT_PAYLOAD" : {
+    "message":{
+      "text":"Thanks for sharing this incident."
+    }
+  },
+  "STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD" : {
+    "message": {
+      "text":"You've made it this far. Is there anything else you would like to add. Just keep writing, we'll add it to the police complaint."
+    }
+  },
+  "STEP:9_SUBMIT_REPORT_PAYLOAD" : {
+    "payload": {
+      "template_type": "button",
+      "text": "That's it. Good job! Click 'Submit Report' and you're done.",
+      "buttons":[{
+        "type": "postback",
+        "title": "SUBMIT REPORT",
+        "payload": "STEP:10_SUBMITTED_REPORT_PAYLOAD"
+      },
+      {
+        "type": "postback",
+        "title": "START OVER",
+        "payload": "STEP:3_ASK_LOCATION_PAYLOAD"
+      }]
+    }
+  },
+  "STEP:10_SUBMITTED_REPORT_PAYLOAD" : {
+    "payload":{
+      "template_type":"generic",
+      "elements":[
+        {
+          "title":"Report Submitted",
+          "subtitle":"You can view your report anytime by clicking the link below",
+          "buttons":[
+            {
+              "type":"web_url",
+              "url":"http://theseedapp.com/incidents",
+              "title":"View Report"
+            },
+            {
+              "type":"postback",
+              "title":"New Report",
+              "payload":"STEP:1a_START_REPORT_PAYLOAD"
+            }
+          ]
+        }
+      ]
     }
   },
   "LAST_PAYLOAD" : {
       "message": {
         "text":"I'm still working on myself. That's all for now :(. If you want to start over, you can from the menu below.:)"
       }
+  },
+  "UTILITIES:CONTINUE_PAYLOAD" : {
+    "message":{
+      "text":"Ok, let's countinue where you left off."
+    }
+  },
+  "UTILITIES:REDO_PREVIOUS_QUESTION_PAYLOAD" : {
+    "message":{
+      "text":"Sorry, this functionality is currently not working yet. Think about if this would be useful though. Thanks. Just continue or start over."
+    }
   }
 
 }

@@ -127,10 +127,13 @@ app.post('/webhook', function (req, res) {
  *
  */
 
+// Save positive or negative experience, hack for now
+var perceivedExperiencOfIncident = null;
 
 // Somtimes the user doesn't write all of the things in one message,
-// this is a hack to save multiple messages together
-var turnUserInputArray = []
+// this is a hack to save multiple messages together without backend
+var turnUserInputArray = [];
+
 
 function receivedMessage(event) {
   var senderID = event.sender.id;
@@ -173,28 +176,39 @@ function receivedMessage(event) {
 			console.log("Quick reply for message %s with payload %s",
 			messageId, quickReplyPayload);
 
-			switch(turn) {
+			if (quickReplyPayload === "UTILITIES:CONTINUE_PAYLOAD" || quickReplyPayload === "UTILITIES:REDO_PREVIOUS_QUESTION_PAYLOAD") {
 
-				// Indentifying Officer Turns
-				case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
-					turnUtil.set('STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
-					sendQuickReply(senderID, 'STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
-					break;
+				sendTextMessage(senderID, quickReplyPayload);
 
-				case 'STEP:5b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD':
-					turnUtil.set('STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
-					sendQuickReply(senderID, 'STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
-					break;
+			} else {
 
-				case 'STEP:5b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD':
-					turnUtil.set('STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
-					sendTextMessage(senderID, "STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD");
-					break;
+				// officer description quick replies
+				switch(turn) {
 
-				default:
-					sendRedundancyMessage(senderID, messageText);
+					// Indentifying Officer Turns
+					case 'STEP:4b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
+						turnUtil.set('STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
+						sendQuickReply(senderID, 'STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD');
+						break;
+
+					case 'STEP:4b2_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_AGE_PAYLOAD':
+						turnUtil.set('STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
+						sendQuickReply(senderID, 'STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD');
+						break;
+
+					case 'STEP:4b3_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_SEX_PAYLOAD':
+						turnUtil.set('STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
+						sendTextMessage(senderID, "STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD");
+						break;
+
+
+					default:
+						sendRedundancyMessage(senderID, messageText);
+
+				}
 
 			}
+
 
 		}
 
@@ -217,7 +231,7 @@ function receivedMessage(event) {
 						// get generic template payload with location predictions to confirm the city
 						locationUtil.createLocationPredictionsPayload(predictions).then(function(payload) {
 							// send user a generic template with locations predictions
-							sendGenericMessage(senderID, payload)
+							sendGenericMessage(senderID, payload);
 						})
 						.catch(function(err) {
 							console.error(err.message);
@@ -234,17 +248,23 @@ function receivedMessage(event) {
 
 				break;
 
-			case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
+			case 'STEP:4a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
 				sendTextMessageWithUserInput(senderID, "Thanks, I noted down the badge number: " + messageText);
+
+				setTimeout(function() {
+					turnUtil.set('STEP:5_ASK_DATE_PAYLOAD');
+					sendButtonMessage(senderID, 'STEP:5_ASK_DATE_PAYLOAD');
+				}, 1000)
+
 				break;
 
-			case 'STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD':
+			case 'STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD':
 				if (messageText.toLowerCase() == "no") {
 					sendTextMessageWithUserInput(senderID, "Thanks, I've noted all that down about the officer.");
 
 					setTimeout(function() {
-						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
-						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
+						turnUtil.set('STEP:5_ASK_DATE_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:5_ASK_DATE_PAYLOAD');
 					}, 1000)
 
 				} else {
@@ -261,21 +281,16 @@ function receivedMessage(event) {
 
 				if (messageText.toLowerCase() == "yes") {
 
-					sendTextMessage(senderID, "STEP:5X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD");
+					sendTextMessage(senderID, "STEP:4X_IDENTIFYING_A_POLICE_OFFICER_DONE_PAYLOAD");
 
 					setTimeout(function() {
-						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
-						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
+						turnUtil.set('STEP:5_ASK_DATE_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:5_ASK_DATE_PAYLOAD');
+						turnUserInputArray = [];
 					}, 1000)
 
 				} else if (messageText.toLowerCase() == "no") {
-					sendTextMessageWithUserInput(senderID, "Thanks, I've noted all that down about the officer.");
-
-					setTimeout(function() {
-						turnUtil.set('STEP:6_ASK_DATE_PAYLOAD');
-						sendButtonMessage(senderID, 'STEP:6_ASK_DATE_PAYLOAD');
-					}, 1000)
-
+					sendTextMessageWithUserInput(senderID, "Ok, just keep writing.");
 				} else {
 
 					turnUserInputArray.push(messageText);
@@ -287,7 +302,7 @@ function receivedMessage(event) {
 
 					} else {
 						//start over
-						turnUtil.set('STEP:5b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
+						turnUtil.set('STEP:4b4_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_PERSONAL_CHARACTERISTICS_PAYLOAD');
 
 						console.error("something went wrong in merging: turnUserInputArray");
 						sendRedundancyMessage(senderID, "something went wrong, let's start this question over.");
@@ -299,16 +314,103 @@ function receivedMessage(event) {
 
 			// Time and date of incident stuff
 			//
-			case 'STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
+			case 'STEP:5a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
 				// ask for date in text date format
-				turnUtil.set('STEP:7_ASK_TIME_PAYLOAD');
-				sendTextMessage(senderID, 'STEP:7_ASK_TIME_PAYLOAD');
+				turnUtil.set('STEP:6_ASK_TIME_PAYLOAD');
+				sendTextMessage(senderID, 'STEP:6_ASK_TIME_PAYLOAD');
 				break;
 
-			case 'STEP:7_ASK_TIME_PAYLOAD':
+			case 'STEP:6_ASK_TIME_PAYLOAD':
 				// ask for date in text date format
-				turnUtil.set('LAST_PAYLOAD');
-				sendTextMessage(senderID, 'LAST_PAYLOAD');
+
+				if (perceivedExperiencOfIncident === "positive") {
+					turnUtil.set('STEP:7a_ASK_ABOUT_POSITIVE_INCIDENT_PAYLOAD');
+					sendTextMessage(senderID, 'STEP:7a_ASK_ABOUT_POSITIVE_INCIDENT_PAYLOAD');
+				} else {
+					turnUtil.set('STEP:7b_ASK_ABOUT_NEGATIVE_INCIDENT_PAYLOAD');
+					sendTextMessage(senderID, 'STEP:7b_ASK_ABOUT_NEGATIVE_INCIDENT_PAYLOAD');
+				}
+				break;
+
+			case 'STEP:7a_ASK_ABOUT_POSITIVE_INCIDENT_PAYLOAD':
+			case 'STEP:7b_ASK_ABOUT_NEGATIVE_INCIDENT_PAYLOAD':
+
+				// add this message to an array in case the user wnats to add more
+				turnUserInputArray.push(messageText);
+
+				turnUtil.set('STEP:7X_CONFIRM_INCIDENT_PAYLOAD');
+				sendTextMessageWithUserInput(senderID, 'Is that all: "' + messageText + '" You can write yes or just continue telling me.');
+
+				break;
+
+			case 'STEP:7X_CONFIRM_INCIDENT_PAYLOAD':
+				if (messageText.toLowerCase() == "yes") {
+
+					sendTextMessage(senderID, "STEP:7X_CONFIRM_INCIDENT_PAYLOAD");
+
+					setTimeout(function() {
+						turnUtil.set('STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD');
+						sendTextMessage(senderID, 'STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD');
+						turnUserInputArray = [];
+					}, 1000)
+
+				} else if (messageText.toLowerCase() == "no") {
+					sendTextMessageWithUserInput(senderID, "Ok, just keep writing.");
+				} else {
+
+					turnUserInputArray.push(messageText);
+					console.log(turnUserInputArray);
+					if (turnUserInputArray.length > 1) {
+
+						var allMessagesText = turnUserInputArray.join(" ");
+						sendTextMessageWithUserInput(senderID, 'Is that all? "' + allMessagesText + '"');
+
+					} else {
+						//start over
+						if (perceivedExperiencOfIncident === "positive") {
+							turnUtil.set('STEP:7a_ASK_ABOUT_POSITIVE_INCIDENT_PAYLOAD');
+						} else {
+							turnUtil.set('STEP:7b_ASK_ABOUT_NEGATIVE_INCIDENT_PAYLOAD');
+						}
+
+						console.error("something went wrong in merging: turnUserInputArray");
+						sendRedundancyMessage(senderID, "something went wrong, let's start this question over.");
+					}
+
+				}
+
+				break;
+
+			case 'STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD':
+				if (messageText.toLowerCase() == "yes") {
+
+					setTimeout(function() {
+						turnUtil.set('STEP:9_SUBMIT_REPORT_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:9_SUBMIT_REPORT_PAYLOAD');
+						turnUserInputArray = [];
+					}, 1000)
+
+				} else if (messageText.toLowerCase() == "no") {
+					sendTextMessageWithUserInput(senderID, "Ok, just keep writing.");
+				} else {
+
+					turnUserInputArray.push(messageText);
+					console.log(turnUserInputArray);
+					if (turnUserInputArray.length > 1) {
+
+						var allMessagesText = turnUserInputArray.join(" ");
+						sendTextMessageWithUserInput(senderID, 'Is that all? "' + allMessagesText + '"');
+
+					} else {
+						//start over
+						turnUtil.set('STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD');
+
+						console.error("something went wrong in merging: turnUserInputArray");
+						sendRedundancyMessage(senderID, "something went wrong, let's start this question over.");
+					}
+
+				}
+
 				break;
 
       default:
@@ -316,7 +418,7 @@ function receivedMessage(event) {
 
     }
   } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
+    sendTextMessage(senderID, "Sorry, you cannot send attachments at this time. I'm not that smart yet. Please start over.");
   }
 }
 
@@ -359,6 +461,10 @@ function receivedPostback(event) {
   var recipientID = event.recipient.id;
   var timeOfPostback = event.timestamp;
 
+	// If we receive a text message, check what turn we are on to make sure
+	// we give the appropriate response
+	var turn = turnUtil.get()
+
   // The 'payload' param is a developer-defined field which is set in a postback
   // button for Structured Messages.
   var payload = event.postback.payload;
@@ -374,84 +480,146 @@ function receivedPostback(event) {
 			// the text we received.
 
 			// if the postback payload includes data the user has confirmed
-			// only being user for location now
 			if (payload.includes("details:", 0)) {
 
 				var userConfirmedData = payload.substring(8);
+				console.log("USERC CONFIRMED DATA: " + userConfirmedData);
 
-				// TODO: CHECK What turn we are on and then do it
-				// semd confirmation message with user's input
-				sendTextMessageWithUserInput(senderID, "Thanks, I've noted down that the location is: " + userConfirmedData);
+				// response from positive/negative question
+				if(userConfirmedData === "positive" || userConfirmedData === "negative") {
 
-				// move to next turn and get information about the officer
-				setTimeout(function() {
-					turnUtil.set('STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
-					sendButtonMessage(senderID, 'STEP:5_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
-				}, 1000)
+					// save type of experience for later
+					perceivedExperiencOfIncident = userConfirmedData;
 
+					// confirm response
+					sendTextMessageWithUserInput(senderID, "Thanks, I've noted down that the interaction was: " + userConfirmedData);
+
+					// send appropriate response based on if user selects negative or positive
+					if(perceivedExperiencOfIncident === "positive") {
+
+						setTimeout(function() {
+							sendTextMessage(senderID, 'STEP:2a_POSITIVE_RESPONSE_PAYLOAD');
+						}, 1000);
+
+						// then go to next question
+						setTimeout(function() {
+							turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
+							sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
+						}, 2000)
+
+
+					} else {
+
+						setTimeout(function() {
+							sendTextMessage(senderID, 'STEP:2b_NEGATIVE_RESPONSE_PAYLOAD');
+						}, 1000);
+
+						// then go to next question
+						setTimeout(function() {
+							turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
+							sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
+						}, 2000)
+
+					}
+
+				} else { // everything else could only be response from location confirmation
+
+					// TODO: CHECK What turn we are on and then do it so we can use this function again
+					sendTextMessageWithUserInput(senderID, "Thanks, I've noted down that the location is: " + userConfirmedData);
+
+					// move to next turn and get information about the officer
+					setTimeout(function() {
+						turnUtil.set('STEP:4_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+						sendButtonMessage(senderID, 'STEP:4_IDENTIFYING_A_POLICE_OFFICER_PAYLOAD');
+					}, 1000)
+
+				}
 
 			} else {
 
 				// Check content/index.js for button payloads
 				switch (payload) {
+
+					// FIRST TIME RESPONSE BUTTONS
 					case 'STEP:1_GET_STARTED_PAYLOAD':
+					case 'STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD':
 						// confirm starting new report
-						turnUtil.set('STEP:1_GET_STARTED_PAYLOAD');
+						turnUtil.set(payload);
 						sendButtonMessage(senderID, payload);
 						break;
 
-					case 'STEP:2_START_REPORT_PAYLOAD':
-						// intro
+					// START NEW REPORT RESPONSE
+					case 'STEP:1a_START_REPORT_PAYLOAD':
 						sendTextMessage(senderID, payload);
 
-						// start by asking the user's location
-						//
 						setTimeout(function() {
-							turnUtil.set('STEP:3_ASK_LOCATION_PAYLOAD');
-							sendTextMessage(senderID, 'STEP:3_ASK_LOCATION_PAYLOAD');
+							turnUtil.set('STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD');
+							sendButtonMessage(senderID, 'STEP:2_ASK_POSITIVE_NEGATIVE_PAYLOAD');
 						}, 1000)
 						break;
 
+					// TEXT RESPONSES
 					case 'STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD':
-						// ask for location again
-						turnUtil.set('STEP:3a_ASK_LOCATION_AGAIN_PAYLOAD');
+					case 'STEP:4a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
+					case 'STEP:5a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
+					case 'STEP:6_ASK_TIME_PAYLOAD':
+
+						turnUtil.set(payload);
 						sendTextMessage(senderID, payload);
 						break;
 
-					// officer location stuff
-					//
-					case 'STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD':
-						// ask for badge number
-						turnUtil.set('STEP:5a_IDENTIFYING_A_POLICE_OFFICER_BY_BADGE_PAYLOAD');
-						sendTextMessage(senderID, payload);
-						break;
+					// QUICK REPLY RESPONSES
+					case 'STEP:4b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
 
-					case 'STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD':
-						// ask first officer description question
-						turnUtil.set('STEP:5b1_IDENTIFYING_A_POLICE_OFFICER_BY_DESCRIPTION_ETHNICITY_PAYLOAD');
+						turnUtil.set(payload);
 						sendQuickReply(senderID, payload);
 						break;
 
-					// Time and date of incident stuff
-					//
-					case 'STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD':
-						// ask for date in text date format
-						turnUtil.set('STEP:6a_ASK_TO_USER_TO_INPUT_DATE_PAYLOAD');
-						sendTextMessage(senderID, payload);
+					// LAST MESSAGE RESPONSE
+					case 'STEP:10_SUBMITTED_REPORT_PAYLOAD':
+						turnUtil.set(payload);
+						sendGenericMessage(senderID, content[payload]);
 						break;
 
-					case 'STEP:7_ASK_TIME_PAYLOAD':
-						// ask for date in text date format
-						turnUtil.set('STEP:7_ASK_TIME_PAYLOAD');
-						sendTextMessage(senderID, payload);
+					// REDO TURN
+					case 'UTILITIES:REDO_TURN_PAYLOAD':
+						turnUtil.redo(turn).then(function(nextTurn) {
+
+							console.log("the next turn should be: "+ nextTurn);
+							// TODO: In order to do this we need to think as each action
+							// as individual, need to be triggered whenever
+							// each conversation elements need to be associated to a type
+							// of component.
+
+							var newPayload = {
+								message : {
+									text :"You sure?",
+									quick_replies:[{
+											content_type:"text",
+											title:"Yep",
+											// payload: nextTurn
+											payload: "UTILITIES:REDO_PREVIOUS_QUESTION_PAYLOAD"
+										},
+										{
+											content_type:"text",
+											title:"Nah",
+											payload:"UTILITIES:CONTINUE_PAYLOAD"
+										}
+									]
+								}
+					    }
+							console.log(newPayload);
+							sendDynamicPayloadQuickReply(senderID, newPayload);
+
+						}).catch(function(err) {
+							console.error("err.message");
+						});
+
 						break;
 
-					case 'LAST_PAYLOAD':
-						sendTextMessage(senderID, payload);
-						break;
-
+					// REDUNDANCY RESPONSE
 					default:
-						sendTextMessage(senderID, "Postback called, but not understood");
+						sendTextMessage(senderID, "Sorry, I did not understand. Try again or start over.");
 				}
 			}
 
@@ -573,7 +741,7 @@ function sendGenericMessage(recipientId, payload) {
 
 
 /*
-* Send a message with Quick Reply buttons.
+* Send message with Quick Reply buttons with content based payload.
 *
 */
 function sendQuickReply(recipientId, payload) {
@@ -581,6 +749,19 @@ function sendQuickReply(recipientId, payload) {
 		 recipient: {
 			 id: recipientId
 		 }}, content[payload])
+
+ fb.callSendAPI(messageData);
+}
+
+/*
+* Send a message with Quick Reply buttons with dynamic payload
+*
+*/
+function sendDynamicPayloadQuickReply(recipientId, payload) {
+ var messageData = Object.assign({
+		 recipient: {
+			 id: recipientId
+		 }}, payload)
 
  fb.callSendAPI(messageData);
 }
