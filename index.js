@@ -382,7 +382,7 @@ function receivedMessage(event) {
 				break;
 
 			case 'STEP:8_ASK_ANYTHING_ELSE_TO_ADD_PAYLOAD':
-				if (messageText.toLowerCase() == "yes") {
+				if (messageText.toLowerCase() == "no") {
 
 					setTimeout(function() {
 						turnUtil.set('STEP:9_SUBMIT_REPORT_PAYLOAD');
@@ -390,7 +390,7 @@ function receivedMessage(event) {
 						turnUserInputArray = [];
 					}, 1000)
 
-				} else if (messageText.toLowerCase() == "no") {
+				} else if (messageText.toLowerCase() == "yes") {
 					sendTextMessageWithUserInput(senderID, "Ok, just keep writing.");
 				} else {
 
